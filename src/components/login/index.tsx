@@ -7,24 +7,42 @@ import {
   Platform,
   TouchableOpacity,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 
 import { useRouter } from "expo-router";
 import AppInput from "../../ui/appInput";
 import AppButton from "../../ui/appButton";
 
+import { useAuth } from "../../contexts/AuthContexts"; 
+
 export default function Login() {
   const router = useRouter();
+  
+ 
+  const { signIn } = useAuth();
 
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
+  const [loading, setLoading] = useState(false); 
 
-  function handleLogin() {
-    // Verificação simples (ajustada para permitir entrar vazio para teste como estava no seu código)
-    if (email === "" && senha === "") {
-      router.replace("/home"); // O Expo Router resolve caminhos dentro de grupos (auth) automaticamente
-    } else {
-      Alert.alert("Erro", "Email ou senha inválidos");
+  async function handleLogin() {
+    
+    if (email.trim() === "" || senha.trim() === "") {
+      Alert.alert("Atenção", "Por favor, preencha todos os campos.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      
+      await signIn(email, senha);
+    } catch (error: any) {
+      
+      Alert.alert("Erro no Login", error.message || "Ocorreu um erro inesperado.");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -43,6 +61,7 @@ export default function Login() {
           onChangeText={setEmail}
           keyboardType="email-address"
           autoCapitalize="none"
+          editable={!loading} 
         />
 
         <AppInput
@@ -50,12 +69,20 @@ export default function Login() {
           secure
           value={senha}
           onChangeText={setSenha}
+          editable={!loading}
         />
 
-        <AppButton title="Entrar" onPress={handleLogin} />
+        {/* Exibe um loader se estiver carregando, senão o botão */}
+        {loading ? (
+          <ActivityIndicator size="large" color="#2563eb" style={{ marginVertical: 10 }} />
+        ) : (
+          <AppButton title="Entrar" onPress={handleLogin} />
+        )}
 
-        {/* Adicionado o onPress para navegar para a tela de registro */}
-        <TouchableOpacity onPress={() => router.push("/register")}>
+        <TouchableOpacity 
+          onPress={() => router.push("/(auth)/register")}
+          disabled={loading}
+        >
           <Text style={styles.link}>
             Não tem conta? <Text style={styles.bold}>Cadastre-se</Text>
           </Text>
@@ -100,6 +127,6 @@ const styles = StyleSheet.create({
   },
   bold: {
     fontWeight: "bold",
-    textDecorationLine: "underline", // Um detalhe visual para parecer um link
+    textDecorationLine: "underline",
   },
 });

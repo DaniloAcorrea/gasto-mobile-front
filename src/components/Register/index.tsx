@@ -1,23 +1,40 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
+import { View, Text, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, Alert, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
 import AppInput from "../../ui/appInput";
 import AppButton from "../../ui/appButton";
 
+import { useAuth } from "../../contexts/AuthContexts"; 
+
 export default function RegisterContent() {
   const router = useRouter();
+  const { signUp } = useAuth(); 
   
-  // Estados para os campos do formulário
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleRegister = () => {
-    // Aqui você adicionaria a lógica de integração com sua API/Firebase
-    console.log("Registrando:", { nome, email, senha });
-    
-    // Após o registro, normalmente enviamos o usuário para a Home ou Login
-    router.replace("/home");
+  const handleRegister = async () => {
+    if (!nome || !email || !senha) {
+      Alert.alert("Atenção", "Preencha todos os campos para continuar.");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      await signUp(nome, email, senha);
+      
+      Alert.alert("Sucesso", "Sua conta foi criada com sucesso!", [
+        { text: "OK", onPress: () => router.replace("/(auth)/home") }
+      ]);
+      
+    } catch (error: any) {
+      Alert.alert("Erro ao cadastrar", error.message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -51,23 +68,28 @@ export default function RegisterContent() {
           <Text style={styles.label}>Senha</Text>
           <AppInput 
             placeholder="Crie uma senha forte" 
-            secure={true} // Usando sua prop 'secure' do AppInput
+            secure={true} 
             value={senha}
             onChangeText={setSenha}
           />
 
           <View style={styles.buttonContainer}>
-            <AppButton 
-              title="Cadastrar" 
-              onPress={handleRegister} 
-            />
+            {/* 4. Exibimos um loading se estiver enviando */}
+            {isSubmitting ? (
+              <ActivityIndicator size="large" color="#3498db" />
+            ) : (
+              <AppButton 
+                title="Cadastrar" 
+                onPress={handleRegister} 
+              />
+            )}
           </View>
 
           <View style={styles.footer}>
             <Text style={styles.footerText}>Já tem uma conta? </Text>
             <Text 
               style={styles.link} 
-              onPress={() => router.push("/login")}
+              onPress={() => router.push("/(auth)/login")}
             >
               Faça Login
             </Text>
@@ -110,6 +132,8 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     marginTop: 10,
+    height: 50, // Reservar espaço para o loading não mover o layout
+    justifyContent: 'center'
   },
   footer: {
     flexDirection: "row",

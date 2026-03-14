@@ -1,7 +1,7 @@
 import React from "react";
 import { TextInput, StyleSheet, TextInputProps } from "react-native";
 
-// Ao estender TextInputProps, seu componente aceita automaticamente:
+
 // keyboardType, autoCapitalize, returnKeyType, etc.
 interface Props extends TextInputProps {
   secure?: boolean; // Mantemos o seu nome personalizado se quiser
