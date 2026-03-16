@@ -15,8 +15,6 @@ import { useAuth, Movimentacao, Categoria } from "../../contexts/AuthContexts";
 
 const screenWidth = Dimensions.get("window").width;
 
-// Único donut: verde para ganhos, vermelho para gastos
-
 const MESES = [
   "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
   "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
